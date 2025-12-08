@@ -87,6 +87,78 @@ $(document).ready(function($) {
     	animateIn: 'fadeIn',
 		});
 
+
+		// Dynamic Blog Loading
+		var loadBlogPosts = function() {
+			var $carousel = $('.nonloop-block-11');
+			if ($carousel.length > 0) {
+				$.get('blog.html', function(data) {
+					var $blogContent = $(data);
+					// Find the card columns in blog.html. Selector might need adjustment based on exact blog.html structure
+					var $blogCards = $blogContent.find('.col-md-6.col-lg-4 .card');
+
+					$blogCards.each(function() {
+						var $originalCard = $(this);
+						
+						// Create new wrapper structure for carousel
+						var $carouselItem = $('<div class="card fundraise-item"></div>');
+						
+						// Extract data
+						var imgHeight = $originalCard.find('img').attr('src');
+                        var imgAlt = $originalCard.find('img').attr('alt');
+						var title = $originalCard.find('.card-title a').text().trim();
+						var link = $originalCard.find('.card-title a').attr('href');
+						var date = $originalCard.find('.text-muted').text().trim();
+						var desc = $originalCard.find('.card-text').text().trim();
+
+						// Construct HTML
+						var html = '';
+						html += '<a href="' + link + '"><img class="card-img-top" src="' + imgHeight + '" alt="' + imgAlt + '"></a>';
+						html += '<div class="card-body">';
+						html += '<h3 class="card-title"><a href="' + link + '">' + title + '</a></h3>';
+						html += '<p class="card-text">' + desc + '</p>';
+						html += '<span class="donation-time mb-3 d-block"><span class="icon-calendar"></span> ' + date + '</span>';
+						html += '<p class="mb-0"><a href="' + link + '" class="btn btn-primary px-3 py-2">Read More</a></p>';
+						html += '</div>';
+
+						$carouselItem.html(html);
+						$carousel.append($carouselItem);
+					});
+
+					// Initialize Owl Carousel AFTER adding content
+					$carousel.owlCarousel({
+						center: true,
+						items: 1,
+						loop: false,
+						stagePadding: 0,
+						margin: 30,
+						nav: false, // We use custom buttons
+						navText: ['<span class="ion-md-arrow-back">', '<span class="ion-md-arrow-forward">'],
+						responsive:{
+							600:{
+								stagePadding: 0,
+								items:1
+							},
+							800:{
+								stagePadding: 40,
+								items:2
+							},
+							1000:{
+								stagePadding: 80,
+								items:3
+							}
+						}
+					});
+
+				}).fail(function() {
+					console.error("Could not load blog.html");
+                    // Fallback or empty state handling could go here
+				});
+			}
+		};
+		loadBlogPosts();
+
+        /* 
 		$('.nonloop-block-11').owlCarousel({
 	    center: true,
 	    items: 1,
@@ -109,7 +181,8 @@ $(document).ready(function($) {
           items:3
         }
 	    }
-		});
+		}); 
+        */
 
 		$('.nonloop').owlCarousel({
 	    center: true,
