@@ -72,7 +72,7 @@
                         <h3 class="h4 text-black mb-3">Administrator Login</h3>
                     </div>
 
-                    <form action="#" method="post">
+                    <form id="loginForm" onsubmit="handleLogin(event)">
 
                         <div class="form-group">
                             <label for="username">Username</label>
@@ -195,6 +195,21 @@
 <script src="js/aos.js"></script>
 <script src="js/jquery.animateNumber.min.js"></script>
 <script src="js/main.js"></script>
+
+<script>
+    function handleLogin(event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        if (username === 'greenwave074@gmail.com' && password === 'Sayura@123') {
+            sessionStorage.setItem('isAdmin', 'true'); // Simple session check
+            window.location.href = 'admin-dashboard.html';
+        } else {
+            alert('Invalid Credentials! Please try again.');
+        }
+    }
+</script>
 
 </body>
 </html>
