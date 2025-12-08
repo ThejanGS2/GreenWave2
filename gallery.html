@@ -286,5 +286,24 @@
   <script src="js/google-map.js"></script>
   <script src="js/main.js"></script>
     
-  </body>
+  <script>
+    // Load Gallery from LocalStorage
+    document.addEventListener('DOMContentLoaded', function() {
+        const localGallery = JSON.parse(localStorage.getItem('gw_gallery') || '[]');
+        const galleryContainer = document.querySelector('.site-section .container .row');
+
+        localGallery.forEach(img => {
+            const html = `
+                <div class="col-md-4">
+                  <a href="${img.src}" class="img-hover" data-fancybox="gallery" data-caption="${img.caption}">
+                    <span class="icon icon-search"></span>
+                    <img src="${img.src}" alt="${img.caption}" class="img-fluid">
+                  </a>
+                </div>
+            `;
+            galleryContainer.insertAdjacentHTML('afterbegin', html);
+        });
+    });
+  </script>
+</body>
 </html>

@@ -88,51 +88,65 @@ $(document).ready(function($) {
 		});
 
 
-		// Dynamic Blog Loading
+		// Dynamic Blog Loading with LocalStorage Support
 		var loadBlogPosts = function() {
 			var $carousel = $('.nonloop-block-11');
 			if ($carousel.length > 0) {
+                // 1. Get Local Storage Blogs
+                var localBlogs = JSON.parse(localStorage.getItem('gw_blogs') || '[]');
+                
+                // Helper to create HTML for a blog item
+                var createCarouselItem = function(img, title, desc, date, link, isLocal=false) {
+                    var finalLink = isLocal ? 'blog.html' : 'blog.html'; // Both go to blog.html now
+                    // If local, we might want to pass an ID to open modal automatically, but for now simple link is fine.
+                    
+                    var html = '';
+                    html += '<div class="card fundraise-item">';
+                    html += '<a href="' + finalLink + '"><img class="card-img-top" src="' + img + '" alt="' + title + '"></a>';
+                    html += '<div class="card-body">';
+                    html += '<h3 class="card-title"><a href="' + finalLink + '">' + title + '</a></h3>';
+                    html += '<p class="card-text">' + desc + '</p>';
+                    html += '<span class="donation-time mb-3 d-block"><span class="icon-calendar"></span> ' + date + '</span>';
+                    html += '<p class="mb-0"><a href="' + finalLink + '" class="btn btn-primary px-3 py-2">Read More</a></p>';
+                    html += '</div></div>';
+                    return html;
+                };
+
+                // 2. Add Local Blogs first
+                localBlogs.forEach(function(blog) {
+                    var itemHtml = createCarouselItem(blog.image, blog.title, blog.desc, blog.date, '#', true);
+                    $carousel.append(itemHtml);
+                });
+
+                // 3. Fetch Static Blogs from blog.html
 				$.get('blog.html', function(data) {
 					var $blogContent = $(data);
-					// Find the card columns in blog.html. Selector might need adjustment based on exact blog.html structure
 					var $blogCards = $blogContent.find('.col-md-6.col-lg-4 .card');
 
 					$blogCards.each(function() {
 						var $originalCard = $(this);
-						
-						// Create new wrapper structure for carousel
-						var $carouselItem = $('<div class="card fundraise-item"></div>');
-						
-						// Extract data
 						var imgHeight = $originalCard.find('img').attr('src');
-                        var imgAlt = $originalCard.find('img').attr('alt');
 						var title = $originalCard.find('.card-title a').text().trim();
-						var link = $originalCard.find('.card-title a').attr('href');
 						var date = $originalCard.find('.text-muted').text().trim();
 						var desc = $originalCard.find('.card-text').text().trim();
-
-						// Construct HTML
-						var html = '';
-						html += '<a href="' + link + '"><img class="card-img-top" src="' + imgHeight + '" alt="' + imgAlt + '"></a>';
-						html += '<div class="card-body">';
-						html += '<h3 class="card-title"><a href="' + link + '">' + title + '</a></h3>';
-						html += '<p class="card-text">' + desc + '</p>';
-						html += '<span class="donation-time mb-3 d-block"><span class="icon-calendar"></span> ' + date + '</span>';
-						html += '<p class="mb-0"><a href="' + link + '" class="btn btn-primary px-3 py-2">Read More</a></p>';
-						html += '</div>';
-
-						$carouselItem.html(html);
-						$carousel.append($carouselItem);
+                        
+                        // Check if this static blog is already in local storage (basic duplicate check by title)
+                        // This prevents showing same blog if user added it manually to HTML later
+                        var isDuplicate = localBlogs.some(lb => lb.title === title);
+                        if (!isDuplicate) {
+                             var itemHtml = createCarouselItem(imgHeight, title, desc, date, 'blog.html');
+						     $carousel.append(itemHtml);
+                        }
 					});
 
-					// Initialize Owl Carousel AFTER adding content
+					// Initialize Owl Carousel
 					$carousel.owlCarousel({
 						center: true,
 						items: 1,
 						loop: false,
 						stagePadding: 0,
 						margin: 30,
-						nav: false, // We use custom buttons
+						nav: false,
 						navText: ['<span class="ion-md-arrow-back">', '<span class="ion-md-arrow-forward">'],
 						responsive:{
 							600:{
@@ -152,7 +166,6 @@ $(document).ready(function($) {
 
 				}).fail(function() {
 					console.error("Could not load blog.html");
-                    // Fallback or empty state handling could go here
 				});
 			}
 		};
