@@ -123,6 +123,30 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Add Board Member Section -->
+            <div class="col-md-6 mb-5">
+                <div class="p-4 bg-white border shadow-sm rounded">
+                    <h3 class="h4 text-black mb-3">Add Board Member</h3>
+                    <form id="addMemberForm" onsubmit="addBoardMember(event)">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" id="memberName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Role / Position</label>
+                            <input type="text" id="memberRole" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Photo URL</label>
+                            <input type="text" id="memberImage" class="form-control" placeholder="images/person_1.jpg" required>
+                        </div>
+                        <div class="form-group mt-4">
+                            <input type="submit" value="Add Member" class="btn btn-info py-2 px-4">
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -191,6 +215,23 @@
 
         alert('Image added to gallery!');
         document.getElementById('addGalleryForm').reset();
+    }
+
+    function addBoardMember(e) {
+        e.preventDefault();
+        const member = {
+            id: Date.now(),
+            name: document.getElementById('memberName').value,
+            role: document.getElementById('memberRole').value,
+            image: document.getElementById('memberImage').value
+        };
+
+        let members = JSON.parse(localStorage.getItem('gw_members') || '[]');
+        members.push(member); // Add to end usually, or beginning? Let's do end for team lists usually.
+        localStorage.setItem('gw_members', JSON.stringify(members));
+
+        alert('Board Member added!');
+        document.getElementById('addMemberForm').reset();
     }
 </script>
 
