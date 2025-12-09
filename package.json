@@ -1,0 +1,8 @@
+{
+  "name": "greenwave-web",
+  "version": "1.0.0",
+  "description": "GreenWave Environmental Organization Website",
+  "scripts": {
+    "build": "node setup-env.js"
+  }
+}
