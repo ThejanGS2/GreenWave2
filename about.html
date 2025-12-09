@@ -36,7 +36,7 @@
         <ul class="navbar-nav ml-auto">
           <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
           <li class="nav-item"><a href="how-it-works.html" class="nav-link">How It Works</a></li>
-          <li class="nav-item"><a href="donate.html" class="nav-link">Community Members</a></li>
+          <li class="nav-item"><a href="community_memberss.html" class="nav-link">Community Members</a></li>
           <li class="nav-item"><a href="gallery.html" class="nav-link">Gallery</a></li>
           <li class="nav-item"><a href="blog.html" class="nav-link">Blog</a></li>
           <li class="nav-item active"><a href="about.html" class="nav-link">About</a></li>
@@ -185,38 +185,8 @@
             </div>
           </div>
 
-          <div class="row">
-            <div class="col-md-6 col-lg-3 mb-5">
-              <div class="person-donate text-center">
-                <img src="images/person_1.jpg" alt="Image placeholder" class="img-fluid">
-                <div class="donate-info">
-                  <h2>N.D.S.K.Nanayakkara</h2>
-                  <span class="time d-block mb-3">Chairman of Green Wave</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3 mb-5">
-              <div class="person-donate text-center">
-                <img src="images/img.png" alt="Image placeholder" class="img-fluid">
-                <div class="donate-info">
-                  <h2>A.P.V.S.Rajapathirana</h2>
-                  <span class="time d-block mb-3">Secretary of Green Wave </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3 mb-5">
-              <div class="person-donate text-center">
-                <img src="images/img_1.png" alt="Image placeholder" class="img-fluid">
-                <div class="donate-info">
-                  <h2>Ravindu Dinisuru</h2>
-                  <span class="time d-block mb-3">Treasurer of Green Wave</span>
-                </div>
-              </div>
-            </div>
-
-
+          <div class="row" id="committee-members-container">
+            <!-- Dynamic members will be loaded here -->
           </div>
         </div>
       </div>
@@ -327,28 +297,48 @@
   <script src="js/jquery.animateNumber.min.js"></script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
   <script src="js/google-map.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/contentful@latest/dist/contentful.browser.min.js"></script>
+  <script src="js/contentful-config.js"></script>
   <script src="js/main.js"></script>
     
   <script>
-    // Load Board Members from LocalStorage
-    document.addEventListener('DOMContentLoaded', function() {
-        const localMembers = JSON.parse(localStorage.getItem('gw_members') || '[]');
-        const membersContainer = document.querySelector('.site-section.fund-raisers .container .row:last-child');
 
-        localMembers.forEach(member => {
-            const html = `
-                <div class="col-md-6 col-lg-3 mb-5">
-                  <div class="person-donate text-center">
-                    <img src="${member.image}" alt="${member.name}" class="img-fluid">
-                    <div class="donate-info">
-                      <h2>${member.name}</h2>
-                      <span class="time d-block mb-3">${member.role}</span>
-                    </div>
-                  </div>
-                </div>
-            `;
-            membersContainer.insertAdjacentHTML('beforeend', html);
-        });
+    // Load Committee Members from Contentful
+    document.addEventListener('DOMContentLoaded', function() {
+        const membersContainer = document.getElementById('committee-members-container');
+
+        if (membersContainer) {
+            client.getEntries({
+                content_type: 'committeeMembers'
+            })
+            .then((response) => {
+                response.items.forEach((item) => {
+                    const fields = item.fields;
+                    const name = fields.name || 'Unnamed';
+                    const position = fields.position || '';
+                    let imgUrl = 'images/person_1.jpg'; // Default fallback
+                    if (fields.image && fields.image.fields && fields.image.fields.file) {
+                        imgUrl = fields.image.fields.file.url;
+                    }
+
+                    const html = `
+                        <div class="col-md-6 col-lg-3 mb-5">
+                          <div class="person-donate text-center">
+                            <img src="${imgUrl}" alt="${name}" class="img-fluid">
+                            <div class="donate-info">
+                              <h2>${name}</h2>
+                              <span class="time d-block mb-3">${position}</span>
+                            </div>
+                          </div>
+                        </div>
+                    `;
+                    membersContainer.insertAdjacentHTML('beforeend', html);
+                });
+            })
+            .catch(err => {
+                console.error("Error loading members:", err);
+            });
+        }
     });
   </script>
 </body>
