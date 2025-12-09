@@ -213,6 +213,48 @@ $(document).ready(function($) {
 		};
 		loadBlogPosts();
 
+        // Load Footer Blogs (Recent 3)
+        function loadFooterBlogs() {
+            var $footerBlogs = $('#footer-recent-blogs');
+            if ($footerBlogs.length > 0) {
+                 client.getEntries({
+                    content_type: 'blogPost',
+                    order: '-sys.createdAt',
+                    limit: 3
+                })
+                .then((response) => {
+                    $footerBlogs.empty(); 
+                    response.items.forEach((item) => {
+                         const fields = item.fields;
+                         let img = 'images/image_1.jpg';
+                         if (fields.thumbnail && fields.thumbnail.fields && fields.thumbnail.fields.file) {
+                             img = fields.thumbnail.fields.file.url;
+                         }
+                         const title = fields.heading || 'Untitled';
+                         const date = new Date(item.sys.createdAt).toLocaleDateString();
+                         
+                         const html = `
+                          <div class="block-21 d-flex mb-4">
+                            <figure class="mr-3">
+                              <img src="${img}" alt="" class="img-fluid">
+                            </figure>
+                            <div class="text">
+                              <h3 class="heading"><a href="blog.html">${title}</a></h3>
+                              <div class="meta">
+                                <div><a href="#"><span class="icon-calendar"></span> ${date}</a></div>
+                                <div><a href="#"><span class="icon-person"></span> Admin</a></div>
+                              </div>
+                            </div>
+                          </div>
+                         `;
+                         $footerBlogs.append(html);
+                    });
+                })
+                .catch(console.error);
+            }
+        }
+        loadFooterBlogs();
+
         /* 
 		$('.nonloop-block-11').owlCarousel({
 	    center: true,

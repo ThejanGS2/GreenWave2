@@ -71,7 +71,7 @@
               <span class="block-48-text-1">Over</span>
               <div class="block-48-counter ftco-number" data-number="100">0</div>
               <span class="block-48-text-1 mb-4 d-block">Members & Supporters all over Sri Lanka</span>
-              <p class="mb-0"><a href="blog-single.html" class="btn btn-white px-3 py-2">View Our Program</a></p>
+              <p class="mb-0"><a href="blog.html" class="btn btn-white px-3 py-2">View Our Program</a></p>
             </div>
         </div>
         <div class="col-md-6 welcome-text">
@@ -169,46 +169,8 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-md-6 col-lg-3 mb-5">
-          <div class="person-donate text-center">
-            <img src="images/person_1.jpg" alt="Image placeholder" class="img-fluid">
-            <div class="donate-info">
-              <h2>N.D.S.K.Nanayakkara</h2>
-              <span class="time d-block mb-3">Chairman of Green Wave</span>
-            </div>
-          </div>    
-        </div>
-
-        <div class="col-md-6 col-lg-3 mb-5">
-          <div class="person-donate text-center">
-            <img src="images/img.png" alt="Image placeholder" class="img-fluid">
-            <div class="donate-info">
-              <h2>A.P.V.S.Rajapathirana</h2>
-              <span class="time d-block mb-3">Secretary of Green Wave </span>
-            </div>
-          </div>    
-        </div>
-
-        <div class="col-md-6 col-lg-3 mb-5">
-          <div class="person-donate text-center">
-            <img src="images/img_1.png" alt="Image placeholder" class="img-fluid">
-            <div class="donate-info">
-              <h2>Ravindu Dinisuru</h2>
-              <span class="time d-block mb-3">Treasurer of Green Wave</span>
-            </div>
-          </div>    
-        </div>
-
-        <div class="col-md-6 col-lg-3 mb-5">
-          <div class="person-donate text-center">
-            <img src="images/" alt="Image placeholder" class="img-fluid">
-            <div class="donate-info">
-              <h2>xxx</h2>
-              <span class="time d-block mb-3">xxx</span>
-            </div>
-          </div>    
-        </div>
+      <div class="row" id="committee-members-container">
+        <!-- Dynamic members will be loaded here -->
       </div>
     </div>
   </div> <!-- .section -->
@@ -326,46 +288,8 @@
         </div>
         <div class="col-md-6 col-lg-4">
           <h3 class="heading-section">Recent Blog</h3>
-          <div class="block-21 d-flex mb-4">
-            <figure class="mr-3">
-              <img src="images/img_1.jpg" alt="" class="img-fluid">
-            </figure>
-            <div class="text">
-              <h3 class="heading"><a href="#">Water Is Life. Clean Water In Urban Area</a></h3>
-              <div class="meta">
-                <div><a href="#"><span class="icon-calendar"></span> July 29, 2018</a></div>
-                <div><a href="#"><span class="icon-person"></span> Admin</a></div>
-                <div><a href="#"><span class="icon-chat"></span> 19</a></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="block-21 d-flex mb-4">
-            <figure class="mr-3">
-              <img src="images/img_2.jpg" alt="" class="img-fluid">
-            </figure>
-            <div class="text">
-              <h3 class="heading"><a href="#">Life Is Short So Be Kind</a></h3>
-              <div class="meta">
-                <div><a href="#"><span class="icon-calendar"></span> July 29, 2018</a></div>
-                <div><a href="#"><span class="icon-person"></span> Admin</a></div>
-                <div><a href="#"><span class="icon-chat"></span> 19</a></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="block-21 d-flex mb-4">
-            <figure class="mr-3">
-              <img src="images/img_4.jpg" alt="" class="img-fluid">
-            </figure>
-            <div class="text">
-              <h3 class="heading"><a href="#">Unfortunate Children Need Your Love</a></h3>
-              <div class="meta">
-                <div><a href="#"><span class="icon-calendar"></span> July 29, 2018</a></div>
-                <div><a href="#"><span class="icon-person"></span> Admin</a></div>
-                <div><a href="#"><span class="icon-chat"></span> 19</a></div>
-              </div>
-            </div>
+          <div id="footer-recent-blogs">
+            <!-- Dynamic footer blogs will be loaded here -->
           </div>
         </div>
         <div class="col-md-6 col-lg-4">
@@ -420,5 +344,44 @@
   <script src="js/contentful-config.js"></script>
   <script src="js/main.js"></script>
     
+  <script>
+    // Load Committee Members from Contentful
+    document.addEventListener('DOMContentLoaded', function() {
+        const membersContainer = document.getElementById('committee-members-container');
+
+        if (membersContainer) {
+            client.getEntries({
+                content_type: 'committeeMembers'
+            })
+            .then((response) => {
+                response.items.forEach((item) => {
+                    const fields = item.fields;
+                    const name = fields.name || 'Unnamed';
+                    const position = fields.position || '';
+                    let imgUrl = 'images/person_1.jpg'; // Default fallback
+                    if (fields.image && fields.image.fields && fields.image.fields.file) {
+                        imgUrl = fields.image.fields.file.url;
+                    }
+
+                    const html = `
+                        <div class="col-md-6 col-lg-3 mb-5">
+                          <div class="person-donate text-center">
+                            <img src="${imgUrl}" alt="${name}" class="img-fluid">
+                            <div class="donate-info">
+                              <h2>${name}</h2>
+                              <span class="time d-block mb-3">${position}</span>
+                            </div>
+                          </div>
+                        </div>
+                    `;
+                    membersContainer.insertAdjacentHTML('beforeend', html);
+                });
+            })
+            .catch(err => {
+                console.error("Error loading members:", err);
+            });
+        }
+    });
+  </script>
   </body>
 </html>
