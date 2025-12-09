@@ -92,26 +92,75 @@ $(document).ready(function($) {
 		var loadBlogPosts = function() {
 			var $carousel = $('.nonloop-block-11');
 			if ($carousel.length > 0) {
-                // 1. Get Local Storage Blogs
-                var localBlogs = JSON.parse(localStorage.getItem('gw_blogs') || '[]');
-                
-                // Helper to create HTML for a blog item
-                var createCarouselItem = function(img, title, desc, date, link, isLocal=false) {
-                    var finalLink = isLocal ? 'blog.html' : 'blog.html'; // Both go to blog.html now
-                    // If local, we might want to pass an ID to open modal automatically, but for now simple link is fine.
-                    
-                    var html = '';
-                    html += '<div class="card fundraise-item">';
-                    html += '<a href="' + finalLink + '"><img class="card-img-top" src="' + img + '" alt="' + title + '"></a>';
-                    html += '<div class="card-body">';
-                    html += '<h3 class="card-title"><a href="' + finalLink + '">' + title + '</a></h3>';
-                    html += '<p class="card-text">' + desc + '</p>';
-                    html += '<span class="donation-time mb-3 d-block"><span class="icon-calendar"></span> ' + date + '</span>';
-                    html += '<p class="mb-0"><a href="' + finalLink + '" class="btn btn-primary px-3 py-2">Read More</a></p>';
-                    html += '</div></div>';
-                    return html;
-                };
+                // 1. Get Contentful Blogs
+                client.getEntries({
+                    content_type: 'blogPost',
+                    order: '-sys.createdAt' // Newest first
+                })
+                .then((response) => {
+                    response.items.forEach((item) => {
+                         const fields = item.fields;
+                         const img = fields.thumbnail ? fields.thumbnail.fields.file.url : 'images/image_1.jpg';
+                         const title = fields.heading;
+                         const desc = fields.description ? fields.description.substring(0, 100) + '...' : '';
+                         const date = new Date(item.sys.createdAt).toLocaleDateString();
+                         
+                         var itemHtml = createCarouselItem(img, title, desc, date, 'blog.html', true);
+                         $carousel.append(itemHtml);
+                    });
 
+                    // 2. Fetch Static Blogs (Keep this if you still want old static blogs)
+    				$.get('blog.html', function(data) {
+    					var $blogContent = $(data);
+    					var $blogCards = $blogContent.find('.col-md-6.col-lg-4 .card');
+    
+    					$blogCards.each(function() {
+    						var $originalCard = $(this);
+    						var imgHeight = $originalCard.find('img').attr('src');
+    						var title = $originalCard.find('.card-title a').text().trim();
+    						var date = $originalCard.find('.text-muted').text().trim();
+    						var desc = $originalCard.find('.card-text').text().trim();
+                            
+                             // Basic duplicate check against Contentful titles might be hard async, 
+                             // but since static are old, maybe we just append them? 
+                             // Or we can rely on Owl Carousel not caring.
+                             var itemHtml = createCarouselItem(imgHeight, title, desc, date, 'blog.html');
+    						 $carousel.append(itemHtml);
+    					});
+    
+    					// Initialize Owl Carousel
+    					$carousel.owlCarousel({
+    						center: true,
+    						items: 1,
+    						loop: false,
+    						stagePadding: 0,
+    						margin: 30,
+    						nav: false,
+    						navText: ['<span class="ion-md-arrow-back">', '<span class="ion-md-arrow-forward">'],
+    						responsive:{
+    							600:{
+    								stagePadding: 0,
+    								items:1
+    							},
+    							800:{
+    								stagePadding: 40,
+    								items:2
+    							},
+    							1000:{
+    								stagePadding: 80,
+    								items:3
+    							}
+    						}
+    					});
+    
+    				}).fail(function() {
+    					console.error("Could not load blog.html");
+    				});
+                })
+                .catch(console.error);
+
+                 // Remove Steps 2 and 3 from previous version since we merged them into the async flow
+                 /*
                 // 2. Add Local Blogs first
                 localBlogs.forEach(function(blog) {
                     var itemHtml = createCarouselItem(blog.image, blog.title, blog.desc, blog.date, '#', true);
@@ -119,54 +168,8 @@ $(document).ready(function($) {
                 });
 
                 // 3. Fetch Static Blogs from blog.html
-				$.get('blog.html', function(data) {
-					var $blogContent = $(data);
-					var $blogCards = $blogContent.find('.col-md-6.col-lg-4 .card');
-
-					$blogCards.each(function() {
-						var $originalCard = $(this);
-						var imgHeight = $originalCard.find('img').attr('src');
-						var title = $originalCard.find('.card-title a').text().trim();
-						var date = $originalCard.find('.text-muted').text().trim();
-						var desc = $originalCard.find('.card-text').text().trim();
-                        
-                        // Check if this static blog is already in local storage (basic duplicate check by title)
-                        // This prevents showing same blog if user added it manually to HTML later
-                        var isDuplicate = localBlogs.some(lb => lb.title === title);
-                        if (!isDuplicate) {
-                             var itemHtml = createCarouselItem(imgHeight, title, desc, date, 'blog.html');
-						     $carousel.append(itemHtml);
-                        }
-					});
-
-					// Initialize Owl Carousel
-					$carousel.owlCarousel({
-						center: true,
-						items: 1,
-						loop: false,
-						stagePadding: 0,
-						margin: 30,
-						nav: false,
-						navText: ['<span class="ion-md-arrow-back">', '<span class="ion-md-arrow-forward">'],
-						responsive:{
-							600:{
-								stagePadding: 0,
-								items:1
-							},
-							800:{
-								stagePadding: 40,
-								items:2
-							},
-							1000:{
-								stagePadding: 80,
-								items:3
-							}
-						}
-					});
-
-				}).fail(function() {
-					console.error("Could not load blog.html");
-				});
+				$.get('blog.html', function(data) { ... }
+                */
 			}
 		};
 		loadBlogPosts();
