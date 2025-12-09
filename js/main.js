@@ -89,6 +89,25 @@ $(document).ready(function($) {
 
 
 		// Dynamic Blog Loading with LocalStorage Support
+        function createCarouselItem(img, title, desc, date, link) {
+            return `
+            <div class="item">
+                <div class="block-33 h-100">
+                    <div class="v-card item-body">
+                        <div class="image-wrap">
+                            <a href="${link}"><img src="${img}" alt="Image" class="img-fluid"></a>
+                        </div>
+                        <div class="text">
+                            <span class="meta">${date}</span>
+                            <h3><a href="${link}">${title}</a></h3>
+                            <p>${desc}</p>
+                            <p><a href="${link}" class="btn btn-primary btn-sm">Read More</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
 		var loadBlogPosts = function() {
 			var $carousel = $('.nonloop-block-11');
 			if ($carousel.length > 0) {
@@ -98,11 +117,31 @@ $(document).ready(function($) {
                     order: '-sys.createdAt' // Newest first
                 })
                 .then((response) => {
+                     // Helper to get plain text for preview (Simplified version of what was in blog.html)
+                     function getPlainText(node) {
+                        if (node.nodeType === 'text') return node.value;
+                        if (node.content) return node.content.map(getPlainText).join(' ');
+                        return '';
+                     }
+
                     response.items.forEach((item) => {
                          const fields = item.fields;
-                         const img = fields.thumbnail ? fields.thumbnail.fields.file.url : 'images/image_1.jpg';
-                         const title = fields.heading;
-                         const desc = fields.description ? fields.description.substring(0, 100) + '...' : '';
+                         let img = 'images/image_1.jpg';
+                         if (fields.thumbnail && fields.thumbnail.fields && fields.thumbnail.fields.file) {
+                             img = fields.thumbnail.fields.file.url;
+                         }
+                         const title = fields.heading || 'Untitled';
+                         
+                         let desc = '';
+                         if (fields.description) {
+                             if (fields.description.nodeType === 'document') {
+                                 desc = getPlainText(fields.description);
+                             } else if (typeof fields.description === 'string') {
+                                 desc = fields.description;
+                             }
+                         }
+                         desc = desc.substring(0, 100) + '...';
+
                          const date = new Date(item.sys.createdAt).toLocaleDateString();
                          
                          var itemHtml = createCarouselItem(img, title, desc, date, 'blog.html', true);
