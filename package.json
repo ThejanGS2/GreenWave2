@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "description": "GreenWave Environmental Organization Website",
   "scripts": {
-    "build": "node setup-env.js"
+    "build": "node setup-env.js && mkdir -p public && cp *.html public/ && cp -r css js fonts images public/"
   }
 }
