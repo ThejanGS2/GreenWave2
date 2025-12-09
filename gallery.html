@@ -21,6 +21,37 @@
 
     <link rel="stylesheet" href="css/bootstrap.css">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+      .img-hover {
+          position: relative;
+          display: block;
+      }
+      .gallery-heading {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          background: rgba(0, 0, 0, 0.6);
+          color: #fff;
+          padding: 8px 10px;
+          text-align: center;
+          font-size: 14px;
+          font-weight: 500;
+          z-index: 10;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+      }
+      .img-hover:hover .gallery-heading {
+          opacity: 1;
+      }
+      /* Ensure text is visible on mobile effectively or keep it always visible? 
+         User req said "heading shud be at the bottom", commonly implies always visible or on hover. 
+         Let's make it always visible for clarity as per "like this" usually implies static UI. 
+         Actually, let's stick to simple overlay. */
+      .gallery-heading {
+          opacity: 1; /* Make it always visible as requested "like this" usually implies static */
+      }
+    </style>
 
   </head>
   <body>
@@ -65,82 +96,8 @@
 
   <div class="site-section">
     <div class="container">
-      <div class="row">
-        <div class="col-md-4">
-          <a href="images/img_1.jpg" class="img-hover" data-fancybox="gallery">
-            <span class="icon icon-search"></span>
-            <img src="images/img_1.jpg" alt="Image placeholder" class="img-fluid">
-          </a>
-        </div>
-        <div class="col-md-4">
-          <a href="images/img_2.jpg" class="img-hover" data-fancybox="gallery">
-            <span class="icon icon-search"></span>
-            <img src="images/img_2.jpg" alt="Image placeholder" class="img-fluid">
-          </a>
-        </div>
-        <div class="col-md-4">
-          <a href="images/img_3.jpg" class="img-hover" data-fancybox="gallery">
-            <span class="icon icon-search"></span>
-            <img src="images/img_3.jpg" alt="Image placeholder" class="img-fluid">
-          </a>
-        </div>
-        <div class="col-md-4">
-          <a href="images/img_4.jpg" class="img-hover" data-fancybox="gallery">
-            <span class="icon icon-search"></span>
-            <img src="images/img_4.jpg" alt="Image placeholder" class="img-fluid">
-          </a>
-        </div>
-
-        <div class="col-md-4">
-          <a href="images/img_1.jpg" class="img-hover" data-fancybox="gallery">
-            <span class="icon icon-search"></span>
-            <img src="images/img_1.jpg" alt="Image placeholder" class="img-fluid">
-          </a>
-        </div>
-        <div class="col-md-4">
-          <a href="images/img_2.jpg" class="img-hover" data-fancybox="gallery">
-            <span class="icon icon-search"></span>
-            <img src="images/img_2.jpg" alt="Image placeholder" class="img-fluid">
-          </a>
-        </div>
-
-         <div class="col-md-4">
-          <a href="images/img_1.jpg" class="img-hover" data-fancybox="gallery">
-            <span class="icon icon-search"></span>
-            <img src="images/img_1.jpg" alt="Image placeholder" class="img-fluid">
-          </a>
-        </div>
-        <div class="col-md-4">
-          <a href="images/img_2.jpg" class="img-hover" data-fancybox="gallery">
-            <span class="icon icon-search"></span>
-            <img src="images/img_2.jpg" alt="Image placeholder" class="img-fluid">
-          </a>
-        </div>
-        <div class="col-md-4">
-          <a href="images/img_3.jpg" class="img-hover" data-fancybox="gallery">
-            <span class="icon icon-search"></span>
-            <img src="images/img_3.jpg" alt="Image placeholder" class="img-fluid">
-          </a>
-        </div>
-        <div class="col-md-4">
-          <a href="images/img_4.jpg" class="img-hover" data-fancybox="gallery">
-            <span class="icon icon-search"></span>
-            <img src="images/img_4.jpg" alt="Image placeholder" class="img-fluid">
-          </a>
-        </div>
-
-        <div class="col-md-4">
-          <a href="images/img_1.jpg" class="img-hover" data-fancybox="gallery">
-            <span class="icon icon-search"></span>
-            <img src="images/img_1.jpg" alt="Image placeholder" class="img-fluid">
-          </a>
-        </div>
-        <div class="col-md-4">
-          <a href="images/img_2.jpg" class="img-hover" data-fancybox="gallery">
-            <span class="icon icon-search"></span>
-            <img src="images/img_2.jpg" alt="Image placeholder" class="img-fluid">
-          </a>
-        </div>
+      <div class="row" id="gallery-container">
+        <!-- Dynamic gallery will be loaded here -->
       </div>
     </div>
   </div>
@@ -251,22 +208,38 @@
   <script src="js/main.js"></script>
     
   <script>
-    // Load Gallery from LocalStorage
+    // Load Gallery from Contentful
     document.addEventListener('DOMContentLoaded', function() {
-        const localGallery = JSON.parse(localStorage.getItem('gw_gallery') || '[]');
-        const galleryContainer = document.querySelector('.site-section .container .row');
+        const galleryContainer = document.getElementById('gallery-container');
 
-        localGallery.forEach(img => {
-            const html = `
-                <div class="col-md-4">
-                  <a href="${img.src}" class="img-hover" data-fancybox="gallery" data-caption="${img.caption}">
-                    <span class="icon icon-search"></span>
-                    <img src="${img.src}" alt="${img.caption}" class="img-fluid">
-                  </a>
-                </div>
-            `;
-            galleryContainer.insertAdjacentHTML('afterbegin', html);
-        });
+        if (galleryContainer) {
+            client.getEntries({
+                content_type: 'gallery',
+                order: '-sys.createdAt'
+            })
+            .then((response) => {
+                response.items.forEach((item) => {
+                    const fields = item.fields;
+                    let imgUrl = 'images/image_1.jpg'; // Fallback
+                    if (fields.image && fields.image.fields && fields.image.fields.file) {
+                        imgUrl = fields.image.fields.file.url;
+                    }
+                    const heading = fields.heading || '';
+
+                    const html = `
+                        <div class="col-md-4 mb-4">
+                          <a href="${imgUrl}" class="img-hover" data-fancybox="gallery" data-caption="${heading}">
+                            <span class="icon icon-search"></span>
+                            <img src="${imgUrl}" alt="${heading}" class="img-fluid">
+                            <div class="gallery-heading">${heading}</div>
+                          </a>
+                        </div>
+                    `;
+                    galleryContainer.insertAdjacentHTML('beforeend', html);
+                });
+            })
+            .catch(err => console.error("Error loading gallery:", err));
+        }
     });
   </script>
 </body>
